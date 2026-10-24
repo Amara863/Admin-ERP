@@ -39,11 +39,11 @@ export default function Cows() {
   const pg = Math.min(page, pages);
   const shown = rows.slice((pg - 1) * 25, pg * 25);
 
-  const females = db.cows.filter((c) => c.gender === 'Female').map((c) => ({ value: c.cow_id, label: `${c.cow_name} (${c.cow_id})` }));
-  const males = db.cows.filter((c) => c.cow_type === 'Bull').map((c) => ({ value: c.cow_id, label: `${c.cow_name} (${c.cow_id})` }));
+  const females = db.cows.filter((c) => c.gender === 'Female').map((c) => ({ value: c.cow_id, label: `${(c.cow_name || c.tag_number)} (${c.cow_id})` }));
+  const males = db.cows.filter((c) => c.cow_type === 'Bull').map((c) => ({ value: c.cow_id, label: `${(c.cow_name || c.tag_number)} (${c.cow_id})` }));
   const fields = [
     { key: 'tag_number', label: 'Tag number', required: true },
-    { key: 'cow_name', label: 'Name', required: true },
+    { key: 'cow_name', label: 'Name (optional – tag number is enough)' },
     { key: 'breed', label: 'Breed', type: 'select', options: BREEDS, required: true },
     { key: 'gender', label: 'Gender', type: 'select', options: ['Female', 'Male'], required: true },
     { key: 'cow_type', label: 'Cow type', type: 'select', options: TYPES, required: true },
@@ -61,7 +61,7 @@ export default function Cows() {
     const row = { ...form };
     Object.keys(row).forEach((k) => { if (row[k] === '') row[k] = null; });
     if (editId) { if (!(await store.updateRow('cows', editId, row))) return; store.toast('Cow updated'); }
-    else { if (!(await store.addRow('cows', row))) return; store.toast(`${row.cow_name} added – also add a row in Cow Stock (how it came in)`); }
+    else { if (!(await store.addRow('cows', row))) return; store.toast(`${(row.cow_name || row.tag_number)} added – also add a row in Cow Stock (how it came in)`); }
     setForm(null);
   };
 
@@ -115,10 +115,10 @@ export default function Cows() {
               return (
                 <tr key={c.cow_id} className={isWorker ? '' : 'clickable'} onClick={() => !isWorker && navigate(`/cows/${c.cow_id}`)}>
                   <td className="muted">{c.cow_id}<div style={{ fontSize: 11 }}>{c.tag_number}</div></td>
-                  <td className="strong">{c.cow_name}</td>
+                  <td className="strong">{c.cow_name || <span className="muted">{c.tag_number}</span>}</td>
                   <td>{c.breed}</td>
                   <td><Badge>{c.cow_type}</Badge></td>
-                  <td>{ageOf(c.dob)}</td>
+                  <td>{ageOf(c.dob)}{c.dob && <div className="muted" style={{ fontSize: 11 }} title="Govt aid: small ₹25/day, big ₹50/day">{(new Date() - new Date(c.dob)) / 31557600000 >= 2 ? 'Big' : 'Small'}</div>}</td>
                   <td>{nameOf('sheds', c.shed_id)}</td>
                   {!isWorker && <td className="num">{c.gender === 'Female' ? lactations(db, c.cow_id) : '—'}</td>}
                   {!isWorker && <td className="num">{milkToday[c.cow_id] ? `${milkToday[c.cow_id].toFixed(1)} L` : '—'}</td>}
@@ -145,14 +145,14 @@ export default function Cows() {
       </div>
 
       {form && (
-        <Modal title={editId ? `Edit ${form.cow_name}` : 'Add cow'} onClose={() => setForm(null)}
+        <Modal title={editId ? `Edit ${(form.cow_name || form.tag_number)}` : 'Add cow'} onClose={() => setForm(null)}
           footer={<><button className="btn btn-outline" onClick={() => setForm(null)}>Cancel</button><button className="btn btn-primary" form="cowForm">Save</button></>}>
           <form id="cowForm" onSubmit={save}>
             <FormFields fields={fields} values={form} onChange={(k, v) => setForm((f) => ({ ...f, [k]: v }))} />
           </form>
         </Modal>
       )}
-      {del && <Confirm title="Delete cow" text={<>Delete <b>{del.cow_name} ({del.cow_id})</b>? If the cow was sold / died, add it in Cow Stock instead so the history stays.</>}
+      {del && <Confirm title="Delete cow" text={<>Delete <b>{(del.cow_name || del.tag_number)} ({del.cow_id})</b>? If the cow was sold / died, add it in Cow Stock instead so the history stays.</>}
         onClose={() => setDel(null)} onConfirm={async () => { if (await store.deleteRow('cows', del.cow_id)) store.toast('Cow deleted'); }} />}
     </>
   );

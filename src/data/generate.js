@@ -48,7 +48,7 @@ export function generate(settings = DEFAULT_SETTINGS) {
 
   // ---------------- 1A farm, 1B farm_info ----------------
   const farm = [{ farm_id: 'FARM-01', farm_name: 'Pinjrapole Gaushala', owner_society: 'Pinjrapole Gaushala Trust (registered society)',
-    farm_location: 'Jaipur, Rajasthan – maps.google.com/?q=Pinjrapole+Gaushala+Jaipur', total_land_acre: 25, no_of_cows_in_stock: 0 }];
+    farm_location: 'Jaipur, Rajasthan – maps.google.com/?q=Pinjrapole+Gaushala+Jaipur', total_land_bigha: 241, no_of_cows_in_stock: 0 }];
   const farm_info = [
     ['About farm', 'About the farm', 'Shelter, food and medical care for old, sick and abandoned cows for more than 100 years.'],
     ['About group', 'About the trust', 'Run by Pinjrapole Gaushala Trust, a registered charitable society. Also runs Pakshi Ghar (bird house) and organic farming.'],
@@ -367,7 +367,7 @@ export function generate(settings = DEFAULT_SETTINGS) {
   // ---------------- profiles (customers), slots ----------------
   const AREAS = ['C-Scheme', 'Vaishali Nagar', 'Malviya Nagar', 'Mansarovar', 'Raja Park', 'Sanganer', 'Jagatpura'];
   const profiles = Array.from({ length: s.customers }, (_, i) => ({ profile_id: `uid-c${pad(i + 1)}`, full_name: person(), phone: phone(),
-    email: r() < 0.4 ? `customer${i + 1}@mail.com` : null, default_address: `${int(1, 200)}, ${pick(AREAS)}, Jaipur`, pincode: `3020${pad(int(1, 40), 2)}`,
+    email: r() < 0.4 ? `customer${i + 1}@mail.com` : null, _address: `${int(1, 200)}, ${pick(AREAS)}, Jaipur`,
     created_at: `${daysAgo(i < 4 ? int(0, 6) : int(10, DAYS + 200))} ${pad(int(8, 21), 2)}:${pad(int(0, 59), 2)}` }));
   const delivery_slots = [
     { slot_id: 'SL-01', slot_name: 'Morning', start_time: '06:00', end_time: '08:00', max_orders: 60, is_active: true },
@@ -394,7 +394,7 @@ export function generate(settings = DEFAULT_SETTINGS) {
       const pay = pick(['UPI', 'UPI', 'Card', 'COD']);
       orders.push({ order_id, profile_id: cust.profile_id, order_date: daysAgo(d), order_type: pick(['One-time', 'One-time', 'Subscription', 'Repeat']),
         delivery_date: daysAgo(Math.max(0, d - 1)), slot_id: pick(delivery_slots).slot_id,
-        driver_id: st === 'Placed' || st === 'Packed' ? null : pick(drivers).driver_id, delivery_address: cust.default_address, delivery_status: st,
+        driver_id: st === 'Placed' || st === 'Packed' ? null : pick(drivers).driver_id, delivery_address: cust._address, delivery_status: st,
         payment_mode: pay, amount_paid: pay === 'COD' && st !== 'Delivered' ? 0 : st === 'Cancelled' ? 0 : total });
     }
   }
@@ -504,6 +504,6 @@ export function generate(settings = DEFAULT_SETTINGS) {
   return {
     farm, farm_info, staff, sheds, equipment, cows, diet_plans, items, contacts, purchases_expenses, daily_diary, health_records, treatments,
     milk_production, production_log, orders, order_items, feedback, seva_donations_visits, profiles, products, product_variants, cart_items,
-    delivery_slots, drivers, stock_movements, reviews, cow_movements, admin_users
+    delivery_slots, drivers, stock_movements, reviews, cow_movements, admin_users, shed_milk: []
   };
 }

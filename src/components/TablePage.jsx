@@ -110,7 +110,7 @@ export function DataTable({ config, onRowClick }) {
           </>}>
           <form id="tpForm" onSubmit={save}>
             {/* key columns cannot be changed while editing */}
-            <FormFields fields={editKey ? fields.map((f) => (PK[config.table].includes(f.key) ? { ...f, disabled: true } : f)) : fields}
+            <FormFields fields={editKey && !config.pkEditable ? fields.map((f) => (PK[config.table].includes(f.key) ? { ...f, disabled: true } : f)) : fields}
               values={form} onChange={(k, v) => setForm((f) => ({ ...f, [k]: v }))} />
           </form>
         </Modal>

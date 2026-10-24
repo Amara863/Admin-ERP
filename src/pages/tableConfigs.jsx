@@ -7,9 +7,9 @@ import { TODAY } from '../data/calc';
 
 const cowLink = (id, { find }) => {
   const c = find('cows', id);
-  return c ? <Link to={`/cows/${id}`} className="strong" onClick={(e) => e.stopPropagation()}>{c.cow_name} <span className="muted">({id})</span></Link> : (id || '—');
+  return c ? <Link to={`/cows/${id}`} className="strong" onClick={(e) => e.stopPropagation()}>{(c.cow_name || c.tag_number)} <span className="muted">({id})</span></Link> : (id || '—');
 };
-const cowOptions = ({ db }) => db.cows.map((c) => ({ value: c.cow_id, label: `${c.cow_name} (${c.cow_id})` }));
+const cowOptions = ({ db }) => db.cows.map((c) => ({ value: c.cow_id, label: `${(c.cow_name || c.tag_number)} (${c.cow_id})` }));
 const staffOptions = ({ db }, roles) => db.staff.filter((s) => !roles || roles.includes(s.role)).map((s) => ({ value: s.staff_id, label: `${s.name} – ${s.role}` }));
 const shedOptions = ({ db }) => db.sheds.map((s) => ({ value: s.shed_id, label: s.shed_name }));
 const itemOptions = ({ db }, group) => db.items.filter((i) => !group || i.item_group === group).map((i) => ({ value: i.item_id, label: i.item_name }));
@@ -98,7 +98,7 @@ export const diaryTabs = [
     ],
     fields: (s) => [
       { key: 'entry_date', label: 'Date', type: 'date', required: true },
-      { key: 'entry_type', label: 'Work', type: 'select', options: ['Feeding', 'Dung removal', 'Watering', 'Cleaning', 'Observation'], required: true },
+      { key: 'entry_type', label: 'Work', type: 'select', options: ['Feeding', 'Supplement', 'Dung removal', 'Watering', 'Cleaning', 'Observation', 'Pigeon feeding'], required: true },
       { key: 'shed_id', label: 'Shed', type: 'select', options: shedOptions(s), required: true },
       { key: 'item_id', label: 'Feed item', type: 'select', options: itemOptions(s, 'Feed') },
       { key: 'quantity_kg', label: 'Quantity (kg)', type: 'number' },
@@ -209,13 +209,15 @@ export const customerTabs = [
       { label: 'Name', render: (r) => <span className="strong">{r.full_name}</span>, text: (r) => r.full_name },
       { label: 'Phone', key: 'phone' },
       { label: 'Email', key: 'email' },
+      { label: 'Fixed milk customer', render: (r) => <Badge>{r.is_fixed_customer ? 'Yes' : 'No'}</Badge>, text: (r) => (r.is_fixed_customer ? 'Yes' : 'No') },
       { label: 'Orders', num: true, render: (r, s) => s.db.orders.filter((o) => o.profile_id === r.profile_id).length },
       { label: 'Joined', render: (r) => fmtDate(r.created_at), text: (r) => r.created_at }
     ],
     fields: [
       { key: 'full_name', label: 'Full name', required: true },
       { key: 'phone', label: 'Phone', required: true },
-      { key: 'email', label: 'Email', type: 'email' }
+      { key: 'email', label: 'Email', type: 'email' },
+      { key: 'is_fixed_customer', label: 'Fixed milk customer (gets milk first)', type: 'checkbox' }
     ],
     defaults: () => ({ created_at: new Date().toISOString().slice(0, 16).replace('T', ' ') })
   },
@@ -324,7 +326,7 @@ export const sevaTabs = [
       { label: 'Status', render: (r) => <Badge>{r.status}</Badge>, text: (r) => r.status }
     ],
     fields: (s) => [
-      { key: 'entry_type', label: 'Type', type: 'select', options: ['Donation', 'Pooja', 'Gau seva', 'Visit', 'Stay'], required: true },
+      { key: 'entry_type', label: 'Type', type: 'select', options: ['Donation', 'Govt grant', 'Pooja', 'Gau seva', 'Visit', 'Stay'], required: true },
       { key: 'start_date', label: 'Date', type: 'date', required: true },
       { key: 'contact_id', label: 'Contact (offline)', type: 'select', options: contactOptions(s) },
       { key: 'profile_id', label: 'Customer (online)', type: 'select', options: profileOptions(s) },
@@ -385,14 +387,14 @@ export const staffTable = {
     { label: 'Skill', render: (r) => <Badge>{r.skill_type}</Badge>, text: (r) => r.skill_type },
     { label: 'Shift', key: 'shift' },
     { label: 'Mobile', key: 'mobile' },
-    { label: 'Salary', num: true, render: (r) => rupee(r.monthly_salary) },
+    { label: 'Salary', num: true, render: (r) => <>{rupee(r.monthly_salary)}{r.daily_wage ? <div className="muted">{rupee(r.daily_wage)}/day</div> : null}</>, text: (r) => r.monthly_salary },
     { label: 'Leaves left', num: true, render: (r) => `${r.remaining_leaves}/${r.annual_leaves}` },
     { label: 'Overtime (h)', num: true, key: 'overtime_hours' }
   ],
   fields: (s) => [
     { key: 'name', label: 'Name', required: true },
     { key: 'dob', label: 'Date of birth', type: 'date' },
-    { key: 'role', label: 'Role', type: 'select', options: ['Director', 'Manager', 'Supervisor', 'Vet Doctor', 'Vet Assistant', 'Milker', 'Feeder', 'Cleaner', 'Field worker', 'Biogas operator', 'Store helper', 'Accountant', 'Driver', 'Priest'], required: true },
+    { key: 'role', label: 'Role', type: 'select', options: ['Director', 'Manager', 'Supervisor', 'Vet Doctor', 'Vet Assistant', 'Shed worker', 'Milker', 'Feeder', 'Cleaner', 'Field worker', 'Biogas operator', 'Store helper', 'Accountant', 'Driver', 'Priest'], required: true },
     { key: 'department', label: 'Department', type: 'select', options: ['Management', 'Health', 'Production', 'Cultivation & By-products', 'Purchase', 'Finance', 'Veterinary', 'Seva'] },
     { key: 'reports_to', label: 'Reports to (leave empty for shed workers)', type: 'select', options: staffOptions(s, ['Director', 'Manager', 'Supervisor', 'Vet Doctor']) },
     { key: 'shed_id', label: 'Shed', type: 'select', options: shedOptions(s) },
@@ -401,6 +403,7 @@ export const staffTable = {
     { key: 'mobile', label: 'Mobile' },
     { key: 'qualification', label: 'Qualification' },
     { key: 'joined_on', label: 'Joined on', type: 'date' },
+    { key: 'daily_wage', label: 'Daily wage (₹, for daily-wage workers)', type: 'number' },
     { key: 'monthly_salary', label: 'Monthly salary (₹)', type: 'number' },
     { key: 'last_increment_date', label: 'Last increment date', type: 'date' },
     { key: 'overtime_hours', label: 'Overtime hours (month)', type: 'number' },
@@ -420,15 +423,16 @@ export const shedTabs = [
       { label: 'Type', key: 'shed_type' },
       { label: 'Area (sq ft)', num: true, key: 'area_sq_ft' },
       { label: 'Cows / capacity', num: true, render: (r, s) => `${s.db.cows.filter((c) => c.shed_id === r.shed_id).length} / ${r.capacity}` },
-      { label: 'Workers', num: true, render: (r, s) => s.db.staff.filter((x) => x.shed_id === r.shed_id && !['Supervisor', 'Manager'].includes(x.role)).length },
+      { label: 'Shed worker', render: (r, s) => (r.worker_id ? s.nameOf('staff', r.worker_id) : `${s.db.staff.filter((x) => x.shed_id === r.shed_id && !['Supervisor', 'Manager'].includes(x.role)).length} workers`) },
       { label: 'Supervisor', ...name('staff', 'supervisor_id') },
       { label: 'Doctor', ...name('staff', 'doctor_id') }
     ],
     fields: (s) => [
       { key: 'shed_name', label: 'Shed name', required: true },
-      { key: 'shed_type', label: 'Type', type: 'select', options: ['Milking', 'Dry', 'Calf & Heifer', 'Hospital', 'Store'] },
+      { key: 'shed_type', label: 'Type', type: 'select', options: ['Milking', 'Dry', 'Calf & Heifer', 'Mixed', 'Hospital', 'Store'] },
       { key: 'area_sq_ft', label: 'Area (sq ft)', type: 'number' },
       { key: 'capacity', label: 'Capacity (cows)', type: 'number' },
+      { key: 'worker_id', label: 'Shed worker (does all work of this shed)', type: 'select', options: staffOptions(s) },
       { key: 'supervisor_id', label: 'Supervisor', type: 'select', options: staffOptions(s, ['Supervisor']) },
       { key: 'doctor_id', label: 'Doctor', type: 'select', options: staffOptions(s, ['Vet Doctor']) }
     ]
@@ -437,7 +441,7 @@ export const shedTabs = [
 
 export const equipmentTabs = [
   {
-    tabLabel: 'Equipment', table: 'equipment', singular: 'Equipment', addLabel: 'Add equipment', filterKey: 'equipment_type',
+    tabLabel: 'Equipment', table: 'equipment', singular: 'Equipment', addLabel: 'Add equipment', filterKey: 'equipment_type', pkEditable: true,
     columns: [
       { label: 'Name', render: (r) => <span className="strong">{r.equipment_name}</span>, text: (r) => r.equipment_name },
       { label: 'Type', key: 'equipment_type' },
@@ -450,7 +454,7 @@ export const equipmentTabs = [
     ],
     fields: (s) => [
       { key: 'equipment_name', label: 'Name (unique)', required: true },
-      { key: 'equipment_type', label: 'Type', type: 'select', options: ['Milking', 'Fodder cutting', 'Transport', 'Processing', 'Energy', 'Watering', 'Camera', 'IoT sensor'] },
+      { key: 'equipment_type', label: 'Type', type: 'select', options: ['Milking', 'Testing', 'Fodder cutting', 'Transport', 'Processing', 'Energy', 'Watering', 'Camera', 'IoT sensor'] },
       { key: 'shed_id', label: 'Shed', type: 'select', options: shedOptions(s) },
       { key: 'supplier_id', label: 'Supplier', type: 'select', options: contactOptions(s, 'Supplier') },
       { key: 'purchase_date', label: 'Purchase date', type: 'date' },

@@ -32,7 +32,7 @@ export default function CowProfile() {
   const avg = days ? milkRows.reduce((s, m) => s + m.quantity_ltr, 0) / days : 0;
   const fat = milkRows.length ? milkRows.reduce((s, m) => s + m.fat_pct, 0) / milkRows.length : 0;
   const feed = cow.shed_id ? feedingOf(db, cow.shed_id) : null;
-  const cowLink = (c) => (c ? <Link to={`/cows/${c.cow_id}`} className="btn-link">{c.cow_name} ({c.cow_id})</Link> : '—');
+  const cowLink = (c) => (c ? <Link to={`/cows/${c.cow_id}`} className="btn-link">{(c.cow_name || c.tag_number)} ({c.cow_id})</Link> : '—');
 
   return (
     <>
@@ -41,7 +41,7 @@ export default function CowProfile() {
         <div className="profile-head">
           <div className="cow-avatar">{cow.cow_type === 'Calf' ? '🐮' : cow.gender === 'Male' ? '🐂' : '🐄'}</div>
           <div style={{ flex: 1 }}>
-            <h1 className="page-title">{cow.cow_name} <span className="muted" style={{ fontSize: 15 }}>{cow.cow_id} · {cow.tag_number}</span></h1>
+            <h1 className="page-title">{(cow.cow_name || cow.tag_number)} <span className="muted" style={{ fontSize: 15 }}>{cow.cow_id} · {cow.tag_number}</span></h1>
             <p className="page-sub">{cow.breed} · {cow.gender} · {ageOf(cow.dob)} · {out ? `${lm.movement_type} on ${fmtDate(lm.movement_date)}` : nameOf('sheds', cow.shed_id)}</p>
           </div>
           <Badge>{cow.cow_type}</Badge> <Badge>{cow.status}</Badge>

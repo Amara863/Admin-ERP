@@ -18,7 +18,7 @@ const infoConfig = {
     { label: 'Link', render: (r) => r.link || '—' }
   ],
   fields: (s) => [
-    { key: 'info_type', label: 'Type', type: 'select', options: ['About farm', 'About group', 'Address', 'Contact', 'Feedback email', 'Bank account', 'Certificate', 'Achievement', 'Training program'], required: true },
+    { key: 'info_type', label: 'Type', type: 'select', options: ['About farm', 'About group', 'Address', 'Contact', 'Feedback email', 'Bank account', 'Certificate', 'Registration', 'Working practice', 'Government aid', 'Statistics', 'Achievement', 'Training program'], required: true },
     { key: 'title', label: 'Title', required: true },
     { key: 'details', label: 'Details', type: 'textarea', full: true },
     { key: 'info_date', label: 'Date', type: 'date' },
@@ -35,7 +35,7 @@ export default function FarmInfo() {
   const inStock = cowsInStock(db).filter((c) => c.shed_id).length;
   return (
     <>
-      <PageHead title="Farm Info" sub="Farm details (Table 1A) and website information (Table 1B)">
+      <PageHead title="Farm Info" sub="Gaushala details, registrations and information shown on the website">
         {canEdit('/farm') && <button className="btn btn-primary" onClick={() => setForm({ ...f })}><Pencil size={15} /> Edit farm</button>}
       </PageHead>
       <div className="card" style={{ marginBottom: 16 }}>
@@ -43,7 +43,7 @@ export default function FarmInfo() {
         <dl className="kv">
           <dt>Owner / society</dt><dd>{f.owner_society}</dd>
           <dt>Location</dt><dd>{f.farm_location}</dd>
-          <dt>Total land</dt><dd>{f.total_land_acre} acre</dd>
+          <dt>Total land</dt><dd>{f.total_land_bigha} bigha</dd>
           <dt>Cows in stock</dt><dd>{inStock} <span className="muted">(updated automatically from Cow Stock)</span></dd>
         </dl>
       </div>
@@ -51,10 +51,10 @@ export default function FarmInfo() {
       {form && (
         <Modal title="Edit farm" onClose={() => setForm(null)}
           footer={<><button className="btn btn-outline" onClick={() => setForm(null)}>Cancel</button><button className="btn btn-primary" form="farmForm">Save</button></>}>
-          <form id="farmForm" onSubmit={async (e) => { e.preventDefault(); const { no_of_cows_in_stock, ...rest } = form; if (await updateRow('farm', f.farm_id, { ...rest, total_land_acre: Number(form.total_land_acre) })) { setForm(null); toast('Farm updated'); } }}>
+          <form id="farmForm" onSubmit={async (e) => { e.preventDefault(); const { no_of_cows_in_stock, ...rest } = form; if (await updateRow('farm', f.farm_id, { ...rest, total_land_bigha: Number(form.total_land_bigha) })) { setForm(null); toast('Farm updated'); } }}>
             <FormFields values={form} onChange={(k, v) => setForm((x) => ({ ...x, [k]: v }))} fields={[
               { key: 'farm_name', label: 'Farm name', required: true }, { key: 'owner_society', label: 'Owner / society' },
-              { key: 'farm_location', label: 'Location (Google Maps link)', full: true }, { key: 'total_land_acre', label: 'Total land (acre)', type: 'number' }]} />
+              { key: 'farm_location', label: 'Location (Google Maps link)', full: true }, { key: 'total_land_bigha', label: 'Total land (bigha)', type: 'number' }]} />
           </form>
         </Modal>
       )}

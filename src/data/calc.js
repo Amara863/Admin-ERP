@@ -37,9 +37,11 @@ export const orderTotal = (db, orderId) =>
   db.order_items.filter((i) => i.order_id === orderId).reduce((s, i) => s + i.quantity * i.unit_price, 0);
 
 // milk per day (map date -> litres) for a set of cows (or all)
-export function milkByDate(db, filter = () => true) {
+// shed-wise milk (shed_milk) is added only when no cow filter is given – a shed should use either cow-wise or shed-wise entry
+export function milkByDate(db, filter) {
   const m = {};
-  db.milk_production.forEach((r) => { if (filter(r)) m[r.milk_date] = (m[r.milk_date] || 0) + r.quantity_ltr; });
+  db.milk_production.forEach((r) => { if (!filter || filter(r)) m[r.milk_date] = (m[r.milk_date] || 0) + Number(r.quantity_ltr); });
+  if (!filter) (db.shed_milk || []).forEach((r) => { m[r.milk_date] = (m[r.milk_date] || 0) + Number(r.quantity_ltr); });
   return m;
 }
 

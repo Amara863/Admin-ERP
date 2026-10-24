@@ -63,7 +63,7 @@ export const REPORTS = [
 
 export function buildReport(key, db, { from, to, group, shed }) {
   const name = (t, idCol, nameCol) => Object.fromEntries(db[t].map((r) => [r[idCol], r[nameCol]]));
-  const cow = name('cows', 'cow_id', 'cow_name');
+  const cow = Object.fromEntries(db.cows.map((c) => [c.cow_id, c.cow_name || c.tag_number]));
   const cowShed = Object.fromEntries(db.cows.map((c) => [c.cow_id, c.shed_id]));
   const shedName = name('sheds', 'shed_id', 'shed_name');
   const staff = name('staff', 'staff_id', 'name');

@@ -18,12 +18,13 @@ export const PK = {
   order_items: ['order_id', 'variant_id'], feedback: ['contact_id', 'received_at'], seva_donations_visits: ['entry_id'],
   profiles: ['profile_id'], products: ['product_id'], product_variants: ['variant_id'], cart_items: ['profile_id', 'variant_id'],
   delivery_slots: ['slot_id'], drivers: ['driver_id'], stock_movements: ['variant_id', 'moved_at'], reviews: ['profile_id', 'product_id'],
-  cow_movements: ['cow_id', 'movement_date'], admin_users: ['user_id']
+  cow_movements: ['cow_id', 'movement_date'], admin_users: ['user_id'],
+  shed_milk: ['shed_id', 'milk_date', 'shift']
 };
 const TABLES = Object.keys(PK);
 // columns that cannot be empty in Supabase (NOT NULL) – forms mark them with *
 export const REQUIRED = {
-  farm: ['farm_name', 'owner_society', 'farm_location', 'total_land_acre'], farm_info: ['details'],
+  farm: ['farm_name', 'owner_society', 'farm_location', 'total_land_bigha'], farm_info: ['details'],
   staff: ['name', 'role', 'skill_type', 'mobile', 'shift', 'monthly_salary', 'remaining_leaves'],
   sheds: ['shed_name', 'shed_type', 'area_sq_ft', 'capacity'], equipment: ['equipment_type', 'status'],
   cows: ['tag_number', 'breed', 'gender', 'cow_type', 'status'], diet_plans: ['for_category'],
@@ -33,7 +34,8 @@ export const REQUIRED = {
   production_log: ['input_material', 'input_qty', 'input_unit'], feedback: ['feedback_type', 'message', 'status'],
   seva_donations_visits: ['entry_type', 'start_date', 'status'], profiles: ['full_name', 'phone', 'created_at'],
   products: ['product_name', 'category'], product_variants: ['size', 'price'], delivery_slots: ['slot_name', 'start_time', 'end_time'],
-  stock_movements: ['movement_type', 'quantity'], cow_movements: ['movement_type'], admin_users: ['access_role']
+  stock_movements: ['movement_type', 'quantity'], cow_movements: ['movement_type'], admin_users: ['access_role'],
+  shed_milk: ['quantity_ltr']
 };
 // prefix for new IDs when the table has a single text ID
 const NEW_ID = { staff: 'STF-', sheds: 'SHD-', cows: 'COW-', items: 'ITM-', contacts: 'CT-', purchases_expenses: 'TXN-', daily_diary: 'DRY-',
@@ -49,10 +51,13 @@ const writeS = (k, v) => {
 };
 
 // read one whole table from Supabase (Supabase gives max 1000 rows per call, so read in pages)
+const OPTIONAL = ['shed_milk'];
 async function fetchAll(table) {
   const rows = [];
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase.from(table).select('*').range(from, from + 999);
+    // tables added later (see pinjrapole SQL) – if not created yet in Supabase, treat as empty instead of failing
+    if (error && OPTIONAL.includes(table)) return [];
     if (error) throw new Error(`${table}: ${error.message}`);
     rows.push(...data);
     if (data.length < 1000) return rows;
@@ -163,7 +168,7 @@ export function StoreProvider({ children }) {
   }, [db]);
   const find = (table, id) => maps[table]?.get(id);
   const NAME = { staff: 'name', sheds: 'shed_name', cows: 'cow_name', items: 'item_name', contacts: 'name', products: 'product_name', profiles: 'full_name', delivery_slots: 'slot_name' };
-  const nameOf = (table, id) => { const r = find(table, id); return r ? r[NAME[table]] : '—'; };
+  const nameOf = (table, id) => { const r = find(table, id); return r ? (r[NAME[table]] || (table === 'cows' ? r.tag_number : '') || id) : '—'; };
   const variantName = (vid) => { const v = find('product_variants', vid); if (!v) return '—'; return `${nameOf('products', v.product_id)} (${v.size})`; };
 
   // waiting for Supabase

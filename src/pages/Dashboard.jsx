@@ -42,7 +42,7 @@ export default function Dashboard() {
     const a = [];
     d.low.forEach((v) => a.push({ tone: 'red', icon: AlertTriangle, text: `Low stock: ${variantName(v.variant_id)} – only ${d.summary[v.variant_id].current} left (min ${v.reorder_level})`, to: '/products', when: TODAY }));
     db.items.filter((i) => i.stock_qty < i.reorder_level).forEach((i) => a.push({ tone: 'red', icon: AlertTriangle, text: `${i.item_name} below reorder level (${i.stock_qty} ${i.unit})`, to: '/feed-stock', when: TODAY }));
-    d.sick.forEach((c) => a.push({ tone: 'amber', icon: HeartPulse, text: `${c.cow_name} (${c.cow_id}) is sick – in ${nameOf('sheds', c.shed_id)}`, to: `/cows/${c.cow_id}`, when: TODAY }));
+    d.sick.forEach((c) => a.push({ tone: 'amber', icon: HeartPulse, text: `${(c.cow_name || c.tag_number)} (${c.cow_id}) is sick – in ${nameOf('sheds', c.shed_id)}`, to: `/cows/${c.cow_id}`, when: TODAY }));
     d.missed.forEach((x) => a.push({ tone: 'red', icon: ClipboardX, text: `${x.entry_type} missed today in ${nameOf('sheds', x.shed_id)} (${x.remarks})`, to: '/diary', when: TODAY }));
     d.pending.slice(0, 5).forEach((o) => a.push({ tone: 'green', icon: ShoppingCart, text: `New order ${o.order_id} from ${nameOf('profiles', o.profile_id)} – ${rupee(orderTotal(db, o.order_id))}`, to: '/orders', when: o.order_date }));
     db.health_records.filter((h) => h.check_date >= daysAgo(2) && h.condition === 'Sick').forEach((h) => a.push({ tone: 'amber', icon: Stethoscope, text: `Vet check: ${nameOf('cows', h.cow_id)} – ${h.disease_name}`, to: '/health', when: h.check_date }));
@@ -131,7 +131,7 @@ export default function Dashboard() {
             {d.sick.map((c) => (
               <Link to={`/cows/${c.cow_id}`} key={c.cow_id} className="list-item">
                 <div className="list-icon amber"><HeartPulse size={17} /></div>
-                <div style={{ flex: 1 }}><b>{c.cow_name}</b> <span className="muted">{c.cow_id} · {c.breed}</span></div>
+                <div style={{ flex: 1 }}><b>{(c.cow_name || c.tag_number)}</b> <span className="muted">{c.cow_id} · {c.breed}</span></div>
                 <Badge>Sick</Badge>
               </Link>
             ))}

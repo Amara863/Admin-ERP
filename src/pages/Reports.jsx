@@ -92,7 +92,7 @@ function MilkReport({ db, base, period, inShed, keys }) {
     rows.forEach((m) => { const c = (cow[m.cow_id] ||= { total: 0, days: new Set(), fat: 0, n: 0 }); c.total += m.quantity_ltr; c.days.add(m.milk_date); c.fat += m.fat_pct; c.n++; });
     const cows = Object.entries(cow).map(([id, c]) => {
       const x = base.cowById[id];
-      return { id, name: x.cow_name, breed: x.breed, shed: x.shed_id, avg: r1(c.total / c.days.size), total: Math.round(c.total), fat: r1(c.fat / c.n), lact: lactations(db, id), exp: BREED_EXPECTED_MILK[x.breed] || 6 };
+      return { id, name: (x.cow_name || x.tag_number), breed: x.breed, shed: x.shed_id, avg: r1(c.total / c.days.size), total: Math.round(c.total), fat: r1(c.fat / c.n), lact: lactations(db, id), exp: BREED_EXPECTED_MILK[x.breed] || 6 };
     }).sort((a, b) => b.avg - a.avg);
     // per shed
     const sh = {};
@@ -171,7 +171,7 @@ function MilkReport({ db, base, period, inShed, keys }) {
             <thead><tr><th>Cow</th><th>Breed</th><th>Type</th><th className="num">Lactations</th><th className="num">Avg L/day</th></tr></thead>
             <tbody>
               {d.topLact.map((c) => (
-                <tr key={c.cow_id}><td className="strong">{c.cow_name} <span className="muted">{c.cow_id}</span></td><td>{c.breed}</td><td><Badge>{c.cow_type}</Badge></td><td className="num strong">{c.lact}</td><td className="num">{c.avg ?? '—'}</td></tr>
+                <tr key={c.cow_id}><td className="strong">{(c.cow_name || c.tag_number)} <span className="muted">{c.cow_id}</span></td><td>{c.breed}</td><td><Badge>{c.cow_type}</Badge></td><td className="num strong">{c.lact}</td><td className="num">{c.avg ?? '—'}</td></tr>
               ))}
             </tbody>
           </table></div>
